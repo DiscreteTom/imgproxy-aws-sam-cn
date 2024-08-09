@@ -7,11 +7,6 @@ Parameters:
   FunctionName:
     Type: String
     Description: A name for the function. If you don't specify a name, stack name is used.
-  ImageUri:
-    Type: String
-    Description: >-
-      The URI of the Docker image to use for the function.
-      The image must be in an Amazon Elastic Container Registry (Amazon ECR) repository.
   MemorySize:
     Type: Number
     Description: >-
@@ -79,7 +74,6 @@ Metadata:
           default: Lambda Function
         Parameters:
           - FunctionName
-          - ImageUri
           - MemorySize
           - Timeout
       - Label:
@@ -100,8 +94,6 @@ Metadata:
     ParameterLabels:
       FunctionName:
         default: Function name
-      ImageUri:
-        default: Docker image
       MemorySize:
         default: Memory size
       Timeout:
@@ -159,7 +151,6 @@ Resources:
         - !Ref "FunctionName"
         - !Ref "AWS::StackName"
       PackageType: Image
-      ImageUri: !Ref ImageUri
       MemorySize: !Ref MemorySize
       Timeout: !Ref Timeout
       Environment:
@@ -262,6 +253,10 @@ Resources:
           Properties:
             Path: /{proxy+}
             Method: ANY
+    Metadata:
+      DockerTag: imgproxy-latest-arm64
+      DockerContext: ./
+      Dockerfile: Dockerfile
 
 Outputs:
   FunctionArn:
