@@ -71,14 +71,6 @@ Parameters:
     Type: String
     Description: Path prefix, beginning with a slash (/).Do not add a slash (/) at the end of the path
     Default: ""
-  CreateCloudFrontDistribution:
-    Type: String
-    Description: >-
-      Should caching CloudFront distribution be created?
-    Default: "Yes"
-    AllowedValues:
-      - "Yes"
-      - "No"
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -105,7 +97,6 @@ Metadata:
           default: Endpoint
         Parameters:
           - PathPrefix
-          - CreateCloudFrontDistribution
     ParameterLabels:
       FunctionName:
         default: Function name
@@ -127,8 +118,6 @@ Metadata:
         default: Enable client-side decryption
       PathPrefix:
         default: Path prefix (optional)
-      CreateCloudFrontDistribution:
-        default: Create CloudFront distribution?
 
 Conditions:
   HaveFunctionName: !Not
@@ -159,54 +148,6 @@ Conditions:
     - !Equals
       - !Ref "PathPrefix"
       - ""
-  DeployCloudFront: !Equals
-    - !Ref "CreateCloudFrontDistribution"
-    - "Yes"
-
-Mappings:
-  OriginShieldRegionMap:
-    # Regions with origin shield
-    us-east-2:
-      Region: us-east-2
-    us-east-1:
-      Region: us-east-1
-    us-west-2:
-      Region: us-west-2
-    ap-south-1:
-      Region: ap-south-1
-    ap-northeast-2:
-      Region: ap-northeast-2
-    ap-southeast-1:
-      Region: ap-southeast-1
-    ap-southeast-2:
-      Region: ap-southeast-2
-    ap-northeast-1:
-      Region: ap-northeast-1
-    eu-central-1:
-      Region: eu-central-1
-    eu-west-1:
-      Region: eu-west-1
-    eu-west-2:
-      Region: eu-west-2
-    sa-east-1:
-      Region: sa-east-1
-    # Regions without origin shield
-    us-west-1:
-      Region: us-west-2
-    af-south-1:
-      Region: eu-west-1
-    ap-east-1:
-      Region: ap-southeast-1
-    ca-central-1:
-      Region: us-east-1
-    eu-south-1:
-      Region: eu-central-1
-    eu-west-3:
-      Region: eu-west-2
-    eu-north-1:
-      Region: eu-west-2
-    me-south-1:
-      Region: ap-south-1
 
 Resources:
   ImgproxyFunction:
@@ -320,65 +261,6 @@ Resources:
               - !Ref "AWS::NoValue"
       Tracing: Active
 
-  CloudFrontCachePolicy:
-    Type: AWS::CloudFront::CachePolicy
-    Condition: DeployCloudFront
-    Properties:
-      CachePolicyConfig:
-        Name: !Join
-          - "-"
-          - - !Ref "AWS::StackName"
-            - cache-policy
-        DefaultTTL: 31536000
-        MaxTTL: 31536000
-        MinTTL: 1
-        ParametersInCacheKeyAndForwardedToOrigin:
-          CookiesConfig:
-            CookieBehavior: none
-          EnableAcceptEncodingBrotli: false
-          EnableAcceptEncodingGzip: false
-          HeadersConfig:
-            HeaderBehavior: whitelist
-            Headers:
-              - Accept
-          QueryStringsConfig:
-            QueryStringBehavior: none
-
-  CloudFrontDistribution:
-    Type: AWS::CloudFront::Distribution
-    Condition: DeployCloudFront
-    Properties:
-      DistributionConfig:
-        Enabled: true
-        Origins:
-          - DomainName: !Select
-              - 2
-              - !Split ["/", !GetAtt "ImgproxyFunctionUrl.FunctionUrl"]
-            Id: !Join
-              - "-"
-              - - !Ref "AWS::StackName"
-                - origin
-            CustomOriginConfig:
-              OriginProtocolPolicy: https-only
-              OriginReadTimeout: !Ref "Timeout"
-            OriginPath: !Ref "PathPrefix"
-            OriginShield:
-              Enabled: true
-              OriginShieldRegion: !FindInMap
-                - OriginShieldRegionMap
-                - !Ref "AWS::Region"
-                - Region
-        DefaultCacheBehavior:
-          TargetOriginId: !Join
-            - "-"
-            - - !Ref "AWS::StackName"
-              - origin
-          CachePolicyId: !Ref "CloudFrontCachePolicy"
-          ViewerProtocolPolicy: redirect-to-https
-        PriceClass: PriceClass_All
-        ViewerCertificate:
-          CloudFrontDefaultCertificate: true
-
 Outputs:
   FunctionArn:
     Description: The ARN of the function
@@ -386,10 +268,6 @@ Outputs:
   DirectURL:
     Description: The direct URL endpoint for imgproxy
     Value: !GetAtt "ImgproxyFunctionUrl.FunctionUrl"
-  CloudFrontURL:
-    Description: The CloudFront endpoint for imgproxy
-    Value: !GetAtt "CloudFrontDistribution.DomainName"
-    Condition: DeployCloudFront
   HowToConfigure:
     Description: How to configure imgproxy
     Value: !Join
