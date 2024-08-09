@@ -196,10 +196,6 @@ Resources:
             - !Ref "AWS::StackName"
           IMGPROXY_CLOUD_WATCH_NAMESPACE: imgproxy
           IMGPROXY_CLOUD_WATCH_REGION: !Ref "AWS::Region"
-
-      FunctionUrlConfig:
-        AuthType: NONE
-        InvokeMode: RESPONSE_STREAM
       LoggingConfig:
         LogFormat: JSON
       Policies:
@@ -265,9 +261,6 @@ Outputs:
   FunctionArn:
     Description: The ARN of the function
     Value: !GetAtt "ImgproxyFunction.Arn"
-  DirectURL:
-    Description: The direct URL endpoint for imgproxy
-    Value: !GetAtt "ImgproxyFunctionUrl.FunctionUrl"
   HowToConfigure:
     Description: How to configure imgproxy
     Value: !Join
