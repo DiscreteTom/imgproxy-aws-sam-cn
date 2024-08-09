@@ -256,11 +256,20 @@ Resources:
                     - key/*
               - !Ref "AWS::NoValue"
       Tracing: Active
+      Events:
+        ProxyAll:
+          Type: HttpApi
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
 
 Outputs:
   FunctionArn:
     Description: The ARN of the function
     Value: !GetAtt "ImgproxyFunction.Arn"
+  ApiEndpoint:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/"
   HowToConfigure:
     Description: How to configure imgproxy
     Value: !Join
