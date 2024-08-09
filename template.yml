@@ -1,3 +1,5 @@
+# this file is modified from https://github.com/imgproxy/imgproxy-aws-sam/blob/87182b0a8d898b359fbab0bc6d30f3afe67672db/template.yml
+
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 
